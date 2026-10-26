@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tarkash AI - Vehicle ANPR Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { background: white; color: black; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 p-8 font-sans">
+    <div class="max-w-4xl mx-auto bg-white p-8 border border-slate-300 shadow-md">
+        <!-- Header -->
+        <div class="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-widest text-slate-800">TARKASH VSAAS</h1>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">ANPR Traffic & Vehicle Report</h2>
+            </div>
+            <div class="text-right text-xs text-slate-500">
+                <div class="font-bold">Generated: {{ generated_time }}</div>
+                <button onclick="window.print()" class="no-print mt-3 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold">🖨️ PRINT PDF</button>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="mb-6 bg-slate-50 p-4 border border-slate-200">
+            <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Tracking Summary</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div><span class="text-xs text-slate-500">Total Vehicles Logged:</span> <span class="font-bold">{{ total_vehicles }}</span></div>
+                <div><span class="text-xs text-slate-500">System Status:</span> <span class="font-bold text-emerald-600">Online & Tracking</span></div>
+            </div>
+        </div>
+
+        <!-- Table/List -->
+        <h3 class="text-xs font-bold uppercase text-slate-500 mb-3 border-b border-slate-200 pb-1">Detected Vehicles Log</h3>
+        <div class="space-y-4">
+            {% for v in vehicles %}
+            <div class="flex gap-4 items-center border-b border-slate-100 pb-3">
+                {% if v.image_path %}
+                <img src="/media/{{ v.image_path }}" class="w-24 h-16 object-cover border border-slate-300" alt="Vehicle">
+                {% else %}
+                <div class="w-24 h-16 bg-slate-100 border border-slate-300 flex items-center justify-center text-[8px] text-slate-400 font-mono">NO IMAGE</div>
+                {% endif %}
+                
+                <div class="flex-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-sm text-slate-800 uppercase">{{ v.vehicle_type }}</span>
+                        <span class="text-[10px] font-mono border border-slate-300 px-2 py-0.5 rounded">CONF: {{ v.confidence }}%</span>
+                    </div>
+                    <div class="text-xs text-slate-600">Node: <strong>{{ v.camera.name|default:"Main Gate" }}</strong></div>
+                    <div class="text-[10px] text-slate-400 font-mono mt-1">Time: {{ v.timestamp }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 text-sm text-slate-500">No vehicle logs available.</div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

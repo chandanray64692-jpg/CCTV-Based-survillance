@@ -1,0 +1,249 @@
+{% extends 'core/base.html' %}
+{% block title %}Bison Prahari • Camera Management & AI Rules{% endblock %}
+{% block page_label %}CAMERA AI DEFINITIONS & NETWORK DISCOVERY{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-2 min-h-0 overflow-y-auto custom-scrollbar p-1 bg-[#070b12]">
+    
+    <!-- TOP SECTION: Two Columns (Left: Standard Add & Rules | Right: CP Plus LAN Quick Add & Scanner) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 shrink-0">
+        
+        <!-- 1. STANDARD CAMERA & AI RULES FORM -->
+        <div class="dashboard-card bg-vms_card border border-vms_border rounded flex flex-col shadow-lg p-2.5">
+            <div class="text-[8px] font-bold text-slate-300 tracking-widest uppercase mb-2 border-b border-vms_border pb-1">
+                Define Camera Role & Rules (Standard RTSP)
+            </div>
+            
+            <form method="POST" class="space-y-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[7px] text-slate-500 mb-0.5 tracking-widest uppercase">Camera Name</label>
+                        <input type="text" name="name" required placeholder="e.g., Gate 1" class="w-full bg-[#050a12] border border-vms_border text-slate-300 text-[9px] px-2 py-1.5 rounded focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-[7px] text-slate-500 mb-0.5 tracking-widest uppercase">RTSP URL / Source</label>
+                        <input type="text" name="rtsp_url" required placeholder="rtsp://..." class="w-full bg-[#050a12] border border-vms_border text-slate-300 text-[9px] px-2 py-1.5 rounded focus:border-blue-500 transition font-mono">
+                    </div>
+                </div>
+
+                <div class="h-px bg-vms_border my-1.5"></div>
+                <label class="block text-[7px] text-blue-400 font-bold tracking-widest uppercase mb-1">Assign AI Tasks (Rules)</label>
+                
+                <div class="grid grid-cols-4 gap-1">
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="rule_intrusion" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Intrusion</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="rule_anpr" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">ANPR</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="rule_fire" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Fire</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="rule_face" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Face</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="enable_mobile_detection" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Mobile</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="enable_crowd_detection" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Crowd</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="enable_liveness" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Liveness</span>
+                    </label>
+                    <label class="flex items-center gap-1 bg-[#050a12] border border-vms_border p-1 rounded cursor-pointer hover:border-blue-500/50 transition">
+                        <input type="checkbox" name="enable_fence_alert" class="accent-blue-500">
+                        <span class="text-[6px] text-slate-300 uppercase">Fence</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 text-[7px] font-bold tracking-widest py-1.5 rounded transition mt-2 shadow-sm uppercase cursor-pointer">
+                    Deploy & Activate Rules
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. CP PLUS LAN CAMERA QUICK ONBOARDING & NETWORK SCANNER -->
+        <div class="dashboard-card bg-vms_card border border-vms_border rounded flex flex-col shadow-lg p-2.5">
+            <div class="text-[8px] font-bold text-cyan-400 tracking-widest uppercase mb-2 border-b border-vms_border pb-1 flex justify-between items-center">
+                <span>➕ Add CP Plus / Network Scan</span>
+                <button type="button" onclick="startNetworkScan()" id="scan-btn" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white text-[7px] font-bold rounded uppercase tracking-wider transition cursor-pointer">
+                    🔍 Scan Network IP
+                </button>
+            </div>
+            
+            <form method="POST" class="space-y-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_cpplus">
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[6px] text-slate-400 uppercase tracking-widest mb-0.5">Camera Name</label>
+                        <input type="text" id="scan-name" name="name" required placeholder="Main Gate IP Cam" class="w-full bg-[#050a12] border border-vms_border text-white text-[8px] px-2 py-1.5 rounded focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[6px] text-slate-400 uppercase tracking-widest mb-0.5">Camera IP Address</label>
+                        <input type="text" id="scan-ip" name="ip_address" required placeholder="192.168.1.108" class="w-full bg-[#050a12] border border-vms_border text-white text-[8px] px-2 py-1.5 rounded font-mono focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[6px] text-slate-400 uppercase tracking-widest mb-0.5">Username</label>
+                        <input type="text" name="username" value="admin" class="w-full bg-[#050a12] border border-vms_border text-white text-[8px] px-2 py-1.5 rounded font-mono focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[6px] text-slate-400 uppercase tracking-widest mb-0.5">Password</label>
+                        <input type="password" name="password" placeholder="Password" class="w-full bg-[#050a12] border border-vms_border text-white text-[8px] px-2 py-1.5 rounded font-mono focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-[6px] text-slate-400 uppercase tracking-widest mb-0.5">Zone Category</label>
+                        <input type="text" name="zone_category" placeholder="Perimeter" class="w-full bg-[#050a12] border border-vms_border text-white text-[8px] px-2 py-1.5 rounded focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Scan Status / Discovered Dropdown Container -->
+                <div id="scan-status-box" class="hidden text-[7px] text-emerald-400 font-mono bg-emerald-950/30 border border-emerald-500/30 p-1.5 rounded">
+                    Scanning local subnet... Please wait.
+                </div>
+
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-[5px] text-slate-500 font-mono">Auto-detects active LAN IPs via port 554.</span>
+                    <button type="submit" class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-[7px] font-bold tracking-widest rounded transition uppercase cursor-pointer">
+                        Save & Connect CP Plus
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM SECTION: Active Cameras & Their Live Roles Configuration -->
+    <div class="flex-1 dashboard-card bg-vms_card border border-vms_border rounded flex flex-col min-h-0 shadow-lg">
+        <div class="px-2 py-1.5 border-b border-vms_border bg-[#0b111a] flex justify-between items-center shrink-0">
+            <span class="text-[8px] font-bold text-slate-300 tracking-widest uppercase">Active Surveillance Nodes & Assigned AI Rules</span>
+            <span class="text-[7px] bg-blue-900/30 text-blue-400 px-1.5 py-0.5 rounded font-mono border border-blue-500/20 tracking-widest">{{ cameras.count }} NODES</span>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-1.5 space-y-1.5">
+            {% for camera in cameras %}
+            <div class="bg-[#050a12] border border-vms_border p-2 rounded flex flex-col transition duration-300 hover:border-blue-500/30">
+                
+                <!-- TOP ROW: Info & Action Buttons -->
+                <div class="flex justify-between items-start">
+                    <div class="flex flex-col gap-1.5 flex-1 pr-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full mt-0.5 shrink-0 {% if camera.is_active %}bg-emerald-500 animate-pulse shadow-[0_0_5px_#10b981]{% else %}bg-slate-600{% endif %}"></span>
+                            <div>
+                                <div class="text-[9px] font-bold text-cyan-300 tracking-wider">#{{ camera.id }} | {{ camera.name|upper }}</div>
+                                <div class="text-[6px] text-slate-500 font-mono">{{ camera.rtsp_url }}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Active Rule Badges -->
+                        <div class="flex flex-wrap gap-1 ml-3.5">
+                            {% if camera.rule_intrusion %}<span class="text-[5px] border border-red-500/30 bg-red-500/10 text-red-400 px-1 py-0.5 rounded tracking-wider">INTRUSION</span>{% endif %}
+                            {% if camera.rule_anpr %}<span class="text-[5px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-1 py-0.5 rounded tracking-wider">ANPR</span>{% endif %}
+                            {% if camera.rule_fire %}<span class="text-[5px] border border-orange-500/30 bg-orange-500/10 text-orange-400 px-1 py-0.5 rounded tracking-wider">FIRE</span>{% endif %}
+                            {% if camera.rule_face %}<span class="text-[5px] border border-purple-500/30 bg-purple-500/10 text-purple-400 px-1 py-0.5 rounded tracking-wider">FACE</span>{% endif %}
+                            {% if camera.enable_mobile_detection %}<span class="text-[5px] border border-blue-500/30 bg-blue-500/10 text-blue-400 px-1 py-0.5 rounded tracking-wider">MOBILE</span>{% endif %}
+                            {% if camera.enable_crowd_detection %}<span class="text-[5px] border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 px-1 py-0.5 rounded tracking-wider">CROWD</span>{% endif %}
+                            {% if camera.enable_liveness %}<span class="text-[5px] border border-pink-500/30 bg-pink-500/10 text-pink-400 px-1 py-0.5 rounded tracking-wider">LIVENESS</span>{% endif %}
+                            {% if camera.enable_fence_alert %}<span class="text-[5px] border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 px-1 py-0.5 rounded tracking-wider">FENCE</span>{% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-1 shrink-0 mt-1">
+                        <!-- Config Toggle Button -->
+                        <button onclick="document.getElementById('config-{{ camera.id }}').classList.toggle('hidden')" class="text-blue-400 hover:text-white text-[7px] px-2 py-1 tracking-widest uppercase border border-vms_border hover:border-blue-500/30 rounded bg-blue-500/5 transition cursor-pointer">
+                            ⚙️ CONFIGURE
+                        </button>
+                        <!-- Remove / Delete Button -->
+                        <form method="POST" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="camera_id" value="{{ camera.id }}">
+                            <button type="submit" class="text-slate-400 hover:text-red-400 text-[7px] px-2 py-1 tracking-widest uppercase border border-vms_border hover:border-red-500/30 rounded bg-red-500/5 transition cursor-pointer">REMOVE</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- BOTTOM ROW: Hidden Live Edit Panel -->
+                <div id="config-{{ camera.id }}" class="hidden mt-2 pt-2 border-t border-vms_border">
+                    <form method="POST" class="flex flex-col gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_rules">
+                        <input type="hidden" name="camera_id" value="{{ camera.id }}">
+                        
+                        <div class="text-[7px] text-blue-400 font-bold tracking-widest uppercase">Modify Live AI Tasks</div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="rule_intrusion" class="accent-blue-500" {% if camera.rule_intrusion %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Intrusion</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="rule_anpr" class="accent-blue-500" {% if camera.rule_anpr %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">ANPR</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="rule_fire" class="accent-blue-500" {% if camera.rule_fire %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Fire</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="rule_face" class="accent-blue-500" {% if camera.rule_face %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Face</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="enable_mobile_detection" class="accent-blue-500" {% if camera.enable_mobile_detection %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Mobile</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="enable_crowd_detection" class="accent-blue-500" {% if camera.enable_crowd_detection %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Crowd</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="enable_liveness" class="accent-blue-500" {% if camera.enable_liveness %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Liveness</span></label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="enable_fence_alert" class="accent-blue-500" {% if camera.enable_fence_alert %}checked{% endif %}><span class="text-[6px] text-slate-300 uppercase">Fence</span></label>
+                        </div>
+                        
+                        <button type="submit" class="self-end bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-[7px] font-bold tracking-widest px-3 py-1 rounded transition mt-1 cursor-pointer uppercase">
+                            Save Live Settings
+                        </button>
+                    </form>
+                </div>
+                
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-10 text-slate-600 font-mono text-[8px]">NO CAMERAS DEPLOYED</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function startNetworkScan() {
+        const btn = document.getElementById('scan-btn');
+        const statusBox = document.getElementById('scan-status-box');
+        const ipInput = document.getElementById('scan-ip');
+        const nameInput = document.getElementById('scan-name');
+        
+        btn.disabled = true;
+        btn.innerText = "SCANNING...";
+        statusBox.classList.remove('hidden');
+        statusBox.innerText = "Scanning local subnet for active IP cameras on port 554...";
+
+        fetch("{% url 'api_scan_network' %}")
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = "🔍 SCAN NETWORK IP";
+            
+            if (data.status === 'success' && data.cameras.length > 0) {
+                let firstCam = data.cameras[0];
+                ipInput.value = firstCam.ip;
+                nameInput.value = firstCam.name;
+                statusBox.innerText = `✅ Discovered camera at ${firstCam.ip}! Ready to connect.`;
+            } else {
+                statusBox.innerText = "⚠️ No cameras found automatically. Please enter IP manually.";
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerText = "🔍 SCAN NETWORK IP";
+            statusBox.innerText = "❌ Error scanning network.";
+        });
+    }
+</script>
+{% endblock %}

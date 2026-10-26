@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+{% block page_label %}AI EVIDENCE GALLERY & INCIDENT HUB{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-2 min-h-0">
+    
+    <!-- Top Stats Bar -->
+    <div class="px-3 py-2 border-b border-vms_border bg-[#0b111a] flex justify-between items-center shrink-0 shadow-sm">
+        <div class="flex items-center gap-4">
+            <span class="text-[8px] font-bold text-slate-300 tracking-widest uppercase">Captured Evidence Grid</span>
+            <span class="text-[7px] bg-red-900/30 text-red-400 px-2 py-0.5 rounded font-mono border border-red-500/20 tracking-widest uppercase">CRITICAL THREATS: {{ critical_count }}</span>
+        </div>
+        <span class="text-[7px] text-slate-500 font-mono">TOTAL LOGS: {{ total_incidents }}</span>
+    </div>
+
+    <!-- Gallery Grid Container -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            
+            {% for alert in alerts %}
+            <div class="bg-vms_card border border-vms_border rounded-lg overflow-hidden shadow-xl flex flex-col group hover:border-blue-500/50 transition">
+                
+                <!-- Snapshot Image Preview -->
+                <div class="relative w-full aspect-video bg-black overflow-hidden border-b border-vms_border">
+                    {% if alert.image_path %}
+                    <img src="{{ alert.image_path }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="Threat Evidence">
+                    {% else %}
+                    <div class="flex items-center justify-center h-full text-slate-600 font-mono text-[7px]">NO SNAPSHOT</div>
+                    {% endif %}
+                    
+                    <!-- Status Badge Overlay -->
+                    <div class="absolute top-2 left-2">
+                        <span class="bg-red-500/20 backdrop-blur-md text-red-400 border border-red-500/40 px-2 py-0.5 rounded text-[6px] font-bold tracking-widest">
+                            {{ alert.status|upper }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Incident Details -->
+                <div class="p-2.5 flex flex-col justify-between flex-1 bg-[#0b111a] gap-2">
+                    <div>
+                        <div class="text-[8px] font-bold text-cyan-300 tracking-wider mb-1">
+                            {{ alert.camera.name|upper|default:"SYSTEM GATEWAY" }}
+                        </div>
+                        <div class="text-[7px] text-slate-300 font-mono line-clamp-2">
+                            {{ alert.message }}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2 border-t border-vms_border text-[6px] text-slate-500 font-mono">
+                        <span>{{ alert.timestamp|date:"d M Y, H:i:s" }}</span>
+                        <a href="{{ alert.image_path }}" target="_blank" class="text-blue-400 hover:text-white bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded tracking-widest uppercase transition">
+                            VIEW FULL
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="col-span-full flex flex-col items-center justify-center py-16 text-slate-600 font-mono text-[8px]">
+                NO EVIDENCE SNAPSHOTS RECORDED YET
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

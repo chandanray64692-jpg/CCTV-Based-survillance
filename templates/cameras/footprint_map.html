@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+{% block page_label %}SYSTEM HEALTH & AI NODE MONITORING{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-3 min-h-0 bg-[#070b12] text-slate-200 p-3">
+    
+    <!-- Top System Resource Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+        
+        <!-- CPU Usage -->
+        <div class="bg-vms_card border border-vms_border p-3 rounded shadow-lg flex flex-col gap-2">
+            <div class="flex justify-between items-center text-[8px] text-slate-400 uppercase tracking-widest">
+                <span>AI Server CPU Load</span>
+                <span class="text-blue-400 font-mono">{{ cpu_usage }}%</span>
+            </div>
+            <div class="w-full bg-black h-2 rounded overflow-hidden border border-vms_border">
+                <div class="bg-blue-500 h-full transition-all duration-500" style="width: {{ cpu_usage }}%;"></div>
+            </div>
+        </div>
+
+        <!-- RAM Usage -->
+        <div class="bg-vms_card border border-vms_border p-3 rounded shadow-lg flex flex-col gap-2">
+            <div class="flex justify-between items-center text-[8px] text-slate-400 uppercase tracking-widest">
+                <span>Memory (RAM) Allocation</span>
+                <span class="text-emerald-400 font-mono">{{ ram_usage }}%</span>
+            </div>
+            <div class="w-full bg-black h-2 rounded overflow-hidden border border-vms_border">
+                <div class="bg-emerald-500 h-full transition-all duration-500" style="width: {{ ram_usage }}%;"></div>
+            </div>
+        </div>
+
+        <!-- Disk Storage -->
+        <div class="bg-vms_card border border-vms_border p-3 rounded shadow-lg flex flex-col gap-2">
+            <div class="flex justify-between items-center text-[8px] text-slate-400 uppercase tracking-widest">
+                <span>Evidence Storage Disk</span>
+                <span class="text-amber-400 font-mono">{{ disk_usage }}%</span>
+            </div>
+            <div class="w-full bg-black h-2 rounded overflow-hidden border border-vms_border">
+                <div class="bg-amber-500 h-full transition-all duration-500" style="width: {{ disk_usage }}%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Node Status List -->
+    <div class="flex-1 bg-vms_card border border-vms_border rounded overflow-hidden flex flex-col shadow-xl">
+        <div class="px-3 py-2 bg-[#050a12] border-b border-vms_border flex justify-between items-center">
+            <span class="text-[9px] font-bold text-slate-300 tracking-widest uppercase">Registered Camera Node Pings</span>
+            <span class="text-[7px] text-emerald-400 font-mono">ONLINE NODES: {{ active_count }} / {{ cameras.count }}</span>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#050a12]/50 border-b border-vms_border text-[7px] text-slate-400 tracking-widest uppercase font-mono">
+                        <th class="p-2.5">Node Name</th>
+                        <th class="p-2.5">Zone Category</th>
+                        <th class="p-2.5">RTSP Source / IP</th>
+                        <th class="p-2.5">Connection Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-vms_border text-[8px]">
+                    {% for c in cameras %}
+                    <tr class="hover:bg-blue-500/5 transition">
+                        <td class="p-2.5 font-bold text-cyan-300 uppercase">{{ c.name }}</td>
+                        <td class="p-2.5 text-slate-300 uppercase">{{ c.zone_category }}</td>
+                        <td class="p-2.5 font-mono text-slate-400">{{ c.rtsp_url }}</td>
+                        <td class="p-2.5">
+                            {% if c.is_active %}
+                            <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[6px] font-bold tracking-widest">ONLINE (CONNECTED)</span>
+                            {% else %}
+                            <span class="bg-slate-500/10 text-slate-400 border border-slate-500/30 px-2 py-0.5 rounded text-[6px] font-bold tracking-widest">OFFLINE</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-10 text-slate-600 font-mono text-[8px]">NO CAMERAS REGISTERED IN SYSTEM</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

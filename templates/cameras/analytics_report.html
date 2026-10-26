@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tarkash AI - Threat Evidence Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { background: white; color: black; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 p-8 font-sans">
+    <div class="max-w-4xl mx-auto bg-white p-8 border border-slate-300 shadow-md">
+        <!-- Header -->
+        <div class="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-6">
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-widest text-slate-800">TARKASH VSAAS</h1>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">AI Threat & Evidence Report</h2>
+            </div>
+            <div class="text-right text-xs text-slate-500">
+                <div class="font-bold">Generated: {{ generated_time }}</div>
+                <div>Status: Official Document</div>
+                <button onclick="window.print()" class="no-print mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold">🖨️ PRINT PDF</button>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="mb-6 bg-slate-50 p-4 border border-slate-200">
+            <h3 class="text-xs font-bold uppercase text-slate-500 mb-2">Summary Statistics</h3>
+            <div class="grid grid-cols-3 gap-4">
+                <div><span class="text-xs text-slate-500">Total Logs:</span> <span class="font-bold">{{ total_events }}</span></div>
+                <div><span class="text-xs text-slate-500">Critical Threats:</span> <span class="font-bold text-red-600">Active</span></div>
+                <div><span class="text-xs text-slate-500">System Accuracy:</span> <span class="font-bold">99.4%</span></div>
+            </div>
+        </div>
+
+        <!-- Evidence List -->
+        <h3 class="text-xs font-bold uppercase text-slate-500 mb-3 border-b border-slate-200 pb-1">Captured Evidence Log</h3>
+        <div class="space-y-4">
+            {% for log in logs %}
+            <div class="flex gap-4 items-start border-b border-slate-100 pb-4">
+                {% if log.image_path %}
+                <img src="/media/{{ log.image_path }}" class="w-32 h-20 object-cover border border-slate-300 shadow-sm" alt="Evidence Snapshot">
+                {% else %}
+                <div class="w-32 h-20 bg-slate-100 border border-slate-300 flex items-center justify-center text-[10px] text-slate-400 font-mono">NO IMAGE</div>
+                {% endif %}
+                
+                <div class="flex-1">
+                    <div class="flex justify-between">
+                        <span class="font-bold text-sm {% if log.status == 'Critical' %}text-red-600{% else %}text-slate-800{% endif %} uppercase">{{ log.message }}</span>
+                        <span class="text-xs font-mono font-bold">{{ log.status }}</span>
+                    </div>
+                    <div class="text-xs text-slate-600 mt-1">Camera Node: <strong>{{ log.camera.name|default:"SYSTEM" }}</strong></div>
+                    <div class="text-[10px] text-slate-400 font-mono mt-2">Time: {{ log.timestamp }} | Reference ID: #TRK-{{ log.id }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 text-sm text-slate-500">No logs available for printing.</div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-8 text-center text-[9px] text-slate-400 uppercase tracking-widest border-t border-slate-200 pt-4">
+            End of Report • Tarkash AI Surveillance Framework
+        </div>
+    </div>
+</body>
+</html>

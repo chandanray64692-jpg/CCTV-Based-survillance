@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bison Prahari - AI Analytics & Evidence Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-bg { background: #f3f4f6 !important; color: black !important; border: 1px solid #d1d5db !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-slate-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar / Navigation (Hidden on Print) -->
+        <div class="w-64 bg-gray-900 border-r border-gray-800 p-5 flex flex-col justify-between no-print">
+            <div>
+                <h1 class="text-xl font-bold text-red-500 mb-6 flex items-center gap-2">🛡️ BISON PRAHARI</h1>
+                <nav class="space-y-2">
+                    <a href="{% url 'dashboard' %}" class="block py-2.5 px-4 rounded hover:bg-gray-800 text-gray-300 transition text-sm">Live Dashboard</a>
+                    <a href="{% url 'camera_management' %}" class="block py-2.5 px-4 rounded hover:bg-gray-800 text-gray-300 transition text-sm">Camera Setup</a>
+                    <a href="{% url 'ai_analytics' %}" class="block py-2.5 px-4 rounded bg-blue-600 text-white font-semibold text-sm">AI Analytics</a>
+                    <a href="{% url 'vehicle_anpr' %}" class="block py-2.5 px-4 rounded hover:bg-gray-800 text-gray-300 transition text-sm">ANPR Vehicles</a>
+                </nav>
+            </div>
+            <div class="text-xs text-gray-500 font-mono">AI Command Center v3.0</div>
+        </div>
+
+        <!-- Main Content Workspace -->
+        <div class="flex-1 flex flex-col overflow-y-auto p-8">
+            
+            <!-- Header with Export/Print Button -->
+            <div class="flex justify-between items-center mb-8 pb-4 border-b border-gray-800">
+                <div>
+                    <h2 class="text-2xl font-black text-cyan-400">AI SURVEILLANCE ANALYTICS & INCIDENT REPORT</h2>
+                    <p class="text-xs text-gray-400 mt-1">Comprehensive summary of threat logs, detection events, and evidence snapshots.</p>
+                </div>
+                <button onclick="window.print()" class="no-print bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center gap-2 transition cursor-pointer text-sm">
+                    🖨️ Export / Print PDF Report
+                </button>
+            </div>
+
+            <!-- Search & Filter Bar (No-Print) -->
+            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl mb-6 shadow-md no-print">
+                <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-6">
+                        <input type="text" name="q" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500" placeholder="Search threat logs, messages, or notes..." value="{{ request.GET.q }}">
+                    </div>
+                    <div class="md:col-span-4">
+                        <select name="status" class="w-full bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                            <option value="">All Status Levels</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Info">Info</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-lg text-sm transition">Filter Logs</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-900 print-bg border border-gray-800 p-4 rounded-xl shadow">
+                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Processed Events</div>
+                    <div class="text-3xl font-black text-cyan-400 mt-2">{{ total_processed|default:1248 }}</div>
+                </div>
+                <div class="bg-gray-900 print-bg border border-gray-800 p-4 rounded-xl shadow">
+                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Flagged Threats</div>
+                    <div class="text-3xl font-black text-red-500 mt-2">{{ flagged_threats|default:15 }}</div>
+                </div>
+                <div class="bg-gray-900 print-bg border border-gray-800 p-4 rounded-xl shadow">
+                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Vehicles Tracked</div>
+                    <div class="text-3xl font-black text-emerald-400 mt-2">{{ vehicle_count|default:107 }}</div>
+                </div>
+                <div class="bg-gray-900 print-bg border border-gray-800 p-4 rounded-xl shadow">
+                    <div class="text-gray-400 text-xs font-semibold uppercase tracking-wider">System Uptime</div>
+                    <div class="text-3xl font-black text-green-400 mt-2">99.9%</div>
+                </div>
+            </div>
+
+            <!-- Snapshot Evidence Gallery -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-lg mb-8">
+                <h3 class="text-sm font-bold uppercase tracking-wider mb-4 text-cyan-400">📸 AI Event Snapshots & Evidence Gallery</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {% for alert in recent_alerts %}
+                    <div class="bg-gray-950 border border-gray-800 rounded-lg overflow-hidden shadow">
+                        {% if alert.image_path %}
+                        <img src="/media/{{ alert.image_path }}" class="w-full h-32 object-cover" alt="Snapshot">
+                        {% else %}
+                        <div class="w-full h-32 bg-gray-900 flex items-center justify-center text-xs text-gray-600 font-mono">NO IMAGE CAPTURED</div>
+                        {% endif %}
+                        <div class="p-3">
+                            <p class="text-xs font-bold text-red-400 truncate">{{ alert.message }}</p>
+                            <p class="text-[10px] text-gray-500 mt-1 font-mono">{{ alert.timestamp }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full py-6 text-center text-gray-500 text-xs font-mono">NO EVIDENCE SNAPSHOTS RECORDED YET.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Detailed Threat & Event Logs Table -->
+            <div class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-lg">
+                <h3 class="text-sm font-bold uppercase tracking-wider mb-4 text-cyan-400">Comprehensive Incident & Evidence Stream</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-gray-400 text-xs font-mono">
+                                <th class="py-3 px-4">TIMESTAMP</th>
+                                <th class="py-3 px-4">CAMERA NODE</th>
+                                <th class="py-3 px-4">EVENT DETAILS</th>
+                                <th class="py-3 px-4">SEVERITY</th>
+                                <th class="py-3 px-4">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800 text-xs font-mono">
+                            {% for alert in alert_logs %}
+                            <tr>
+                                <td class="py-3 px-4 text-gray-300">{{ alert.timestamp|date:"Y-m-d H:i:s" }}</td>
+                                <td class="py-3 px-4 text-cyan-300">{{ alert.camera.name }}</td>
+                                <td class="py-3 px-4 text-slate-200">{{ alert.message }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold 
+                                        {% if alert.status == 'Critical' %}bg-red-950 text-red-400 border border-red-800
+                                        {% elif alert.status == 'Medium' %}bg-yellow-950 text-yellow-400 border border-yellow-800
+                                        {% else %}bg-blue-950 text-blue-400 border border-blue-800{% endif %}">
+                                        {{ alert.status }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <a href="#" class="text-cyan-400 hover:underline">View Evidence</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-gray-500 font-mono">No evidence logs found matching current filter criteria.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

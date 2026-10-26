@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bison Prahari - ANPR & Vehicle Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #0b0f19; 
+            color: #e2e8f0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        .card-custom { 
+            background: #111827; 
+            border: 1px solid #1f2937; 
+            border-radius: 8px; 
+        }
+        .badge-in { 
+            background-color: #10b981; 
+            color: #fff; 
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+        .badge-out { 
+            background-color: #ef4444; 
+            color: #fff; 
+            padding: 5px 10px;
+            font-weight: 600;
+        }
+        .table-dark-custom { 
+            color: #fff; 
+            background-color: #111827; 
+        }
+        .table-dark-custom th, .table-dark-custom td { 
+            border-color: #1f2937; 
+            vertical-align: middle; 
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid p-4">
+    <h2 class="mb-4">🚗 ANPR & VEHICLE LOGS HUB</h2>
+    
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card card-custom p-3">
+                <h6 class="text-muted">TOTAL TODAY</h6>
+                <h3 class="fw-bold">{{ total_today|default:0 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3">
+                <h6 class="text-muted">REGISTERED</h6>
+                <h3 class="text-success fw-bold">{{ registered_count|default:0 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3">
+                <h6 class="text-muted">UNKNOWN</h6>
+                <h3 class="text-warning fw-bold">{{ unknown_count|default:0 }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom p-3">
+                <h6 class="text-muted">WATCHLIST MATCH</h6>
+                <h3 class="text-danger fw-bold">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item">
+            <a class="nav-link active bg-primary text-white" href="?tab=logs">IN / OUT Logs</a>
+        </li>
+        <li class="nav-item ms-2">
+            <a class="nav-link text-light bg-dark border border-secondary" href="?tab=watchlist">Suspect Watchlist</a>
+        </li>
+    </ul>
+
+    <!-- Data Table Card -->
+    <div class="card card-custom p-3">
+        <div class="table-responsive">
+            <table class="table table-dark table-dark-custom table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>TIMESTAMP</th>
+                        <th>CAMERA</th>
+                        <th>PLATE NUMBER</th>
+                        <th>DIRECTION</th>
+                        <th>CONFIDENCE</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in vehicle_logs %}
+                    <tr>
+                        <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ log.camera.name }}</td>
+                        <td><strong class="text-info">{{ log.plate_number }}</strong></td>
+                        <td>
+                            {% if log.direction == 'IN' %}
+                                <span class="badge badge-in">IN ➡</span>
+                            {% else %}
+                                <span class="badge badge-out">OUT ⬅</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.confidence|floatformat:2 }}</td>
+                        <td><span class="badge bg-secondary">Processed</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No vehicle movement records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,316 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Bison Prahari • AI Command Center{% endblock %}
+{% block page_label %}LIVE{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Premium Dark Dashboard Cards */
+    .dashboard-card {
+        background: rgba(10, 16, 26, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.15);
+        border-radius: 6px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+    }
+    
+    .terminal { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* RED FLASH ALERT ANIMATION FOR NEW THREATS */
+    @keyframes threatFlash {
+        0% { box-shadow: inset 0 0 0px 0px rgba(239, 68, 68, 0); border-color: rgba(239, 68, 68, 0.3); }
+        25% { box-shadow: inset 0 0 40px 2px rgba(239, 68, 68, 0.6); border-color: rgba(239, 68, 68, 1); }
+        50% { box-shadow: inset 0 0 0px 0px rgba(239, 68, 68, 0); border-color: rgba(239, 68, 68, 0.3); }
+        75% { box-shadow: inset 0 0 40px 2px rgba(239, 68, 68, 0.6); border-color: rgba(239, 68, 68, 1); }
+        100% { box-shadow: inset 0 0 0px 0px rgba(239, 68, 68, 0); border-color: rgba(56, 189, 248, 0.15); }
+    }
+    .flash-active { animation: threatFlash 1.5s ease-in-out; }
+
+    /* 3D ROTATING NOTIFICATION BANNER */
+    @keyframes alert3DRotate {
+        0% { transform: perspective(1000px) rotateX(-90deg) scale(0.7); opacity: 0; }
+        50% { transform: perspective(1000px) rotateX(15deg) scale(1.05); opacity: 1; }
+        70% { transform: perspective(1000px) rotateX(-10deg) scale(0.98); opacity: 1; }
+        100% { transform: perspective(1000px) rotateX(0deg) scale(1); opacity: 1; }
+    }
+    .alert-3d-banner {
+        animation: alert3DRotate 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        transform-origin: top center;
+    }
+
+    /* COLLAPSIBLE SIDE PANEL TRANSITION */
+    #incident-panel {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cam-box { background: #000; border: 1px solid #374151; border-radius: 6px; overflow: hidden; position: relative; }
+    .cam-box img { width: 100%; height: 180px; object-fit: cover; }
+    .cam-label { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.75); padding: 3px 8px; font-size: 10px; border-radius: 4px; color: #fff; z-index: 10; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-full w-full flex flex-col gap-2 min-h-0 relative">
+
+    <!-- 3D ROTATING FLOATING ALERT NOTIFICATION POPUP -->
+    <div id="threatPopup" class="absolute top-2 right-4 z-50 hidden pointer-events-none">
+        <div class="alert-3d-banner bg-red-950/90 border-2 border-red-500 text-white px-4 py-2 rounded-lg shadow-[0_0_30px_rgba(239,68,68,0.7)] flex items-center gap-3">
+            <span class="text-xl animate-bounce">🚨</span>
+            <div>
+                <div class="text-[9px] font-black text-red-400 tracking-widest uppercase">NEW THREAT DETECTED!</div>
+                <div id="popupMessage" class="text-[10px] font-bold text-slate-200">Intruder movement spotted</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. ULTRA-COMPACT KPI ROW -->
+    <section class="grid grid-cols-4 gap-2 shrink-0">
+        <div class="dashboard-card px-3 py-2 flex justify-between items-center transition">
+            <span class="text-[9px] text-slate-400 tracking-widest uppercase">Total AI Events</span>
+            <span id="stat-total-events" class="text-lg font-black text-cyan-300">{{ total_events|default:0 }}</span>
+        </div>
+        
+        <div class="dashboard-card px-3 py-2 flex justify-between items-center transition">
+            <span class="text-[9px] text-slate-400 tracking-widest uppercase">Threat Detections</span>
+            <div class="flex items-center gap-2">
+                <span id="threatDot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span id="stat-critical-count" class="text-lg font-black text-red-400">{{ threat_count|default:0 }}</span>
+            </div>
+        </div>
+        
+        <div class="dashboard-card px-3 py-2 flex justify-between items-center transition">
+            <span class="text-[9px] text-slate-400 tracking-widest uppercase">Vehicles Tracked</span>
+            <span id="stat-vehicles-tracked" class="text-lg font-black text-emerald-400">{{ vehicle_count|default:0 }}</span>
+        </div>
+
+        <div class="dashboard-card px-3 py-2 flex justify-between items-center bg-[#110a05] border-orange-900/30">
+            <span class="text-[9px] text-orange-400 tracking-widest uppercase">Security Posture</span>
+            <div class="flex items-center gap-3">
+                <span class="text-lg font-black text-orange-400">SECURE-2</span>
+                <a href="{% url 'analytics_report' %}" target="_blank" class="text-[7px] font-bold text-white bg-orange-600 hover:bg-orange-500 px-2 py-1 rounded transition">EXPORT ⇩</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. MAIN WORKSPACE -->
+    <section class="flex-1 grid grid-cols-12 gap-2 min-h-0 relative">
+        
+        <!-- CENTER COLUMN: Camera Matrix -->
+        <div id="camera-matrix" class="col-span-12 dashboard-card flex flex-col min-h-0 bg-[#020408] border-cyan-900/30 transition-all">
+            <div class="px-3 py-2 border-b border-sky-900/50 flex justify-between items-center shrink-0 bg-[#060a12]">
+                <div class="text-[10px] text-cyan-400 tracking-[0.2em] font-bold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> SURVEILLANCE ARRAY (LIVE FEEDS & AI CONTROLS)
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleIncidentPanel()" id="alertToggleBtn" class="text-[8px] text-red-400 bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 px-2.5 py-1 rounded transition font-bold tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                        🚨 ALERTS (<span id="alertBadgeCount">0</span>) ▼
+                    </button>
+                    <a href="{% url 'camera_management' %}" class="text-[8px] text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 px-2 py-1 rounded transition font-bold">➕ ADD CP PLUS / RTSP</a>
+                    <a href="{% url 'camera_grid' %}" class="text-[8px] text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-2 py-1 rounded transition font-bold">⛶ EXPAND GRID</a>
+                </div>
+            </div>
+            
+            <!-- 4 Cameras Grid Matrix with Inline Dashboard AI Controls -->
+            <div class="flex-1 grid grid-cols-2 grid-rows-2 gap-2 p-2 min-h-0 overflow-y-auto">
+                {% for camera in cameras|slice:":4" %}
+                <div class="cam-box relative rounded bg-black border border-slate-800 flex flex-col justify-between group">
+                    <!-- Top Label with Camera Name -->
+                    <span class="cam-label">
+                        CAM {{ forloop.counter }} | {{ camera.name|upper }}
+                    </span>
+
+                    <!-- Live Video Stream -->
+                    <img src="{% url 'live_feed' camera.id %}" class="w-full flex-1 object-cover" alt="Live Feed">
+
+                    <!-- Assigned AI Tasks Badges Overlay -->
+                    <div class="absolute top-8 left-1 right-1 flex flex-wrap gap-1 z-10 pointer-events-none">
+                        {% if camera.enable_anpr %}
+                            <span class="text-[7px] font-bold bg-blue-900/80 text-blue-300 border border-blue-500/40 px-1.5 py-0.5 rounded">ANPR</span>
+                        {% endif %}
+                        {% if camera.enable_intrusion or camera.enable_fence %}
+                            <span class="text-[7px] font-bold bg-red-900/80 text-red-300 border border-red-500/40 px-1.5 py-0.5 rounded">INTRUSION</span>
+                        {% endif %}
+                        {% if camera.enable_mobile_detection %}
+                            <span class="text-[7px] font-bold bg-purple-900/80 text-purple-300 border border-purple-500/40 px-1.5 py-0.5 rounded">MOBILE</span>
+                        {% endif %}
+                        {% if camera.enable_clahe %}
+                            <span class="text-[7px] font-bold bg-amber-900/80 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded">CLAHE</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- 🟢 Direct Dashboard AI Task Toggle Checkboxes -->
+                    <div class="flex gap-1.5 bg-[#050b14] px-2 py-1.5 text-[7px] text-slate-300 items-center justify-between border-t border-slate-800 shrink-0">
+                        <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                            <input type="checkbox" {% if camera.enable_anpr %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_anpr', this)" class="accent-blue-500 w-2.5 h-2.5"> ANPR
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                            <input type="checkbox" {% if camera.enable_intrusion %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_intrusion', this)" class="accent-red-500 w-2.5 h-2.5"> Intrusion
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                            <input type="checkbox" {% if camera.enable_mobile_detection %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_mobile_detection', this)" class="accent-purple-500 w-2.5 h-2.5"> Mobile
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                            <input type="checkbox" {% if camera.enable_clahe %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_clahe', this)" class="accent-amber-500 w-2.5 h-2.5"> CLAHE
+                        </label>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-2 row-span-2 flex flex-col items-center justify-center text-slate-500 text-[10px] terminal border border-dashed border-slate-800 rounded-lg bg-black/40">
+                    <div class="mb-2 text-cyan-400">[ NO ACTIVE CAMERAS DEPLOYED ]</div>
+                    <a href="{% url 'camera_management' %}" class="text-[8px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded font-bold tracking-wider transition">CONFIGURE CAMERAS & CP PLUS</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Incident Stream (Collapsible Panel) -->
+        <div id="incident-panel" class="hidden col-span-12 md:col-span-3 dashboard-card flex flex-col min-h-0 p-2 transition-all shadow-2xl border-red-500/40">
+            <div class="flex justify-between items-center border-b border-red-900/40 pb-1.5 mb-1.5 shrink-0">
+                <div class="text-[9px] text-red-400 tracking-widest font-bold flex items-center gap-1.5">
+                    <span class="text-[10px] animate-ping">🚨</span> INCIDENT STREAM
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <a href="{% url 'ai_analytics' %}" class="text-[7px] border border-cyan-900/50 bg-cyan-950/30 text-cyan-400 px-1.5 py-0.5 rounded hover:bg-cyan-900 transition">GALLERY</a>
+                    <button onclick="toggleIncidentPanel()" class="text-[7px] text-slate-400 hover:text-white bg-slate-800 px-1.5 py-0.5 rounded">✕ HIDE</button>
+                </div>
+            </div>
+            
+            <div id="log-container" class="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
+                {% for log in logs|slice:":12" %}
+                <div class="bg-[#050910] p-1.5 rounded border-l-2 border-red-500/60 flex gap-2 items-center">
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[8px] font-bold text-red-300 truncate">{{ log.message|upper }}</div>
+                        <div class="text-[7px] text-slate-500 mt-0.5 terminal">{{ log.timestamp }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="h-full flex items-center justify-center text-slate-600 text-[8px] terminal">SYSTEM STANDING BY</div>
+                {% endfor %}
+            </div>
+            
+            <a href="{% url 'alerts_buzzer' %}" class="mt-2 block text-center bg-red-950/40 border border-red-900/50 hover:bg-red-900/70 text-red-400 text-[8px] py-1.5 rounded tracking-widest font-bold shrink-0 transition shadow-lg">
+                EMERGENCY BUZZER HUB
+            </a>
+        </div>
+
+    </section>
+
+    <!-- 3. CLEAN FOOTER -->
+    <section class="shrink-0 px-2 py-1 flex justify-between items-center border-t border-sky-900/30">
+        <div class="text-[7px] text-slate-500 font-mono flex items-center gap-2">
+            <span>🛡️ BISON PRAHARI KERNEL v3.0</span>
+            <span class="text-emerald-500/80">● ALL CAMERAS & AI KERNELS OPERATIONAL</span>
+        </div>
+        <div class="text-[7px] text-slate-600 font-mono tracking-widest">
+            SECURE VSAAS PLATFORM
+        </div>
+    </section>
+
+</div>
+
+<script>
+let isIncidentPanelOpen = false;
+
+function toggleIncidentPanel() {
+    const panel = document.getElementById('incident-panel');
+    const matrix = document.getElementById('camera-matrix');
+    
+    isIncidentPanelOpen = !isIncidentPanelOpen;
+    
+    if (isIncidentPanelOpen) {
+        panel.classList.remove('hidden');
+        matrix.classList.remove('col-span-12');
+        matrix.classList.add('col-span-12', 'md:col-span-9');
+    } else {
+        panel.classList.add('hidden');
+        matrix.classList.remove('md:col-span-9');
+        matrix.classList.add('col-span-12');
+    }
+}
+
+// 🟢 Non-blocking AJAX function for instant UI responsiveness
+function updateCameraAI(cameraId, featureName, checkboxElem) {
+    const isChecked = checkboxElem.checked;
+    
+    fetch(`/cameras/api/toggle-ai/${cameraId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            feature: featureName,
+            state: isChecked
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            console.log(`AI Feature '${featureName}' for Camera ID ${cameraId} updated to: ${isChecked}`);
+        } else {
+            alert('Failed to update camera AI rule!');
+            checkboxElem.checked = !isChecked;
+        }
+    })
+    .catch(err => {
+        console.error('Error updating AI task:', err);
+        checkboxElem.checked = !isChecked;
+    });
+}
+
+(function () {
+    'use strict';
+    const logContainer = document.getElementById('log-container');
+    const camMatrix = document.getElementById('camera-matrix');
+    const incidentPanel = document.getElementById('incident-panel');
+    const threatPopup = document.getElementById('threatPopup');
+    const popupMessage = document.getElementById('popupMessage');
+    const alertBadgeCount = document.getElementById('alertBadgeCount');
+    const alertToggleBtn = document.getElementById('alertToggleBtn');
+    const threatDot = document.getElementById('threatDot');
+    
+    let lastLogContent = "";
+
+    function fetchLiveLogs() {
+        fetch('/cameras/api/recent-alerts/', { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success' && data.alerts) {
+                let html = '';
+                alertBadgeCount.textContent = data.alerts.length;
+
+                data.alerts.slice(0, 12).forEach((alert) => {
+                    html += `
+                    <div class="bg-[#050910] p-1.5 rounded border-l-2 border-red-500/60 flex gap-2 items-center mb-1.5">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-[8px] font-bold text-red-300 truncate">${(alert.message || 'Alert').toUpperCase()}</div>
+                            <div class="text-[7px] text-slate-500 font-mono mt-0.5">${alert.timestamp || ''}</div>
+                        </div>
+                    </div>`;
+                });
+                
+                if(lastLogContent !== "" && lastLogContent !== html) {
+                    camMatrix.classList.add('flash-active');
+                    threatDot.className = "w-2 h-2 rounded-full bg-red-600 animate-ping";
+                    alertToggleBtn.classList.add('bg-red-600', 'text-white', 'animate-bounce');
+
+                    popupMessage.textContent = data.alerts[0].message || "New security threat detected!";
+                    threatPopup.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        camMatrix.classList.remove('flash-active');
+                        threatPopup.classList.add('hidden');
+                        alertToggleBtn.classList.remove('animate-bounce');
+                    }, 3000);
+                }
+                
+                if(lastLogContent !== html) {
+                    logContainer.innerHTML = html;
+                    lastLogContent = html;
+                }
+            }
+        }).catch(()=>{});
+    }
+    setInterval(fetchLiveLogs, 2500);
+})();
+</script>
+{% endblock %}

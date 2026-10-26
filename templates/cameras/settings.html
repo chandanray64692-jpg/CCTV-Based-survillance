@@ -1,0 +1,87 @@
+{% extends 'core/base.html' %}
+{% block page_label %}SYSTEM SETTINGS & RULES{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-2 min-h-0">
+
+    <!-- Top Alert Manager -->
+    <div class="bg-vms_card border border-vms_border rounded p-3 shrink-0 flex justify-between items-center shadow-lg">
+        <div>
+            <div class="text-[10px] font-bold text-white tracking-widest uppercase">False Alert Management</div>
+            <div class="text-[7px] text-slate-500 tracking-widest mt-0.5">Clear database logs to reset AI memory</div>
+        </div>
+        <form method="POST" action="{% url 'alerts_buzzer' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="clear_all">
+            <button type="submit" class="bg-red-600/10 border border-red-600/40 hover:bg-red-600/30 text-red-400 text-[8px] font-bold tracking-widest py-1.5 px-4 rounded transition">
+                🗑️ WIPE ALL LOGS
+            </button>
+        </form>
+    </div>
+
+    <!-- Main Settings Grid -->
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+        
+        <!-- Global Parameters -->
+        <div class="bg-vms_card border border-vms_border rounded p-3 flex flex-col gap-3">
+            <div class="text-[9px] font-bold text-cyan-400 tracking-widest uppercase border-b border-vms_border pb-1.5">AI Engine Thresholds</div>
+            
+            <form method="POST" class="space-y-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_global">
+                
+                <!-- Confidence Score -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[7px] text-slate-400 font-bold tracking-widest uppercase">Minimum Confidence Score</label>
+                        <span class="text-[7px] text-emerald-400 font-mono">60%</span>
+                    </div>
+                    <input type="range" name="confidence" min="30" max="95" value="60" class="w-full accent-blue-500">
+                    <div class="text-[6px] text-slate-500 mt-1">Lower value = more false alerts. Higher = strictly accurate.</div>
+                </div>
+
+                <!-- Cooldown Timer -->
+                <div>
+                    <label class="block text-[7px] text-slate-400 font-bold tracking-widest uppercase mb-1">Alert Cooldown (Seconds)</label>
+                    <input type="number" name="cooldown" value="15" min="5" max="300" class="w-full bg-[#050a12] border border-vms_border text-slate-300 text-[9px] px-2 py-1.5 rounded focus:border-blue-500 transition">
+                    <div class="text-[6px] text-slate-500 mt-1">Time to wait before a camera sends another alert.</div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 text-[8px] font-bold tracking-widest py-1.5 rounded transition shadow-sm">
+                    SAVE PARAMETERS
+                </button>
+            </form>
+        </div>
+
+        <!-- Global Feature Switches -->
+        <div class="bg-vms_card border border-vms_border rounded p-3 flex flex-col gap-3">
+            <div class="text-[9px] font-bold text-cyan-400 tracking-widest uppercase border-b border-vms_border pb-1.5">Global System Switches</div>
+            
+            <div class="space-y-2">
+                <div class="flex items-center justify-between bg-[#050a12] border border-vms_border p-2 rounded">
+                    <div>
+                        <div class="text-[8px] font-bold text-slate-300 uppercase tracking-widest">Master Siren / Buzzer</div>
+                        <div class="text-[6px] text-slate-500">Enable audio alarm for critical threats</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer">
+                        <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between bg-[#050a12] border border-vms_border p-2 rounded">
+                    <div>
+                        <div class="text-[8px] font-bold text-slate-300 uppercase tracking-widest">Record Incident Video</div>
+                        <div class="text-[6px] text-slate-500">Save 10-second video clips of threats</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer">
+                        <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

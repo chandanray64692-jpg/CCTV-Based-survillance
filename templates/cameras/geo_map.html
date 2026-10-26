@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block page_label %}NODE FOOTPRINT MAP{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-2 min-h-0">
+    <div class="bg-vms_card border border-vms_border rounded p-2 flex justify-between items-center shrink-0">
+        <div class="text-[9px] font-bold text-slate-300 tracking-widest uppercase">Global Deployment</div>
+        <div class="text-[7px] text-blue-400 bg-blue-900/20 border border-blue-800/50 px-2 py-0.5 rounded font-mono tracking-widest">
+            TOTAL NODES: {{ total_nodes }}
+        </div>
+    </div>
+
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-2 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+        {% for cam in cameras %}
+        <div class="bg-[#050a12] border border-vms_border p-2 rounded flex flex-col justify-between hover:border-blue-500/30 transition group">
+            <div>
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[9px] font-bold text-cyan-300 truncate pr-2 group-hover:text-white transition">📍 {{ cam.name|upper }}</div>
+                    <span class="text-[6px] font-bold tracking-widest px-1.5 py-0.5 rounded shrink-0 {% if cam.is_active %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30{% else %}bg-slate-800 text-slate-400 border border-slate-700{% endif %}">
+                        {% if cam.is_active %}ONLINE{% else %}OFFLINE{% endif %}
+                    </span>
+                </div>
+                <div class="text-[7px] text-slate-500 font-mono space-y-1">
+                    <div>ZONE: <span class="text-slate-300">{{ cam.zone_category|default:"UNASSIGNED"|upper }}</span></div>
+                    <div class="truncate text-slate-600">SRC: {{ cam.rtsp_url }}</div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full flex items-center justify-center text-[8px] text-slate-600 font-mono border border-dashed border-vms_border rounded h-full">
+            [ NO NODES IN DEPLOYMENT MAP ]
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

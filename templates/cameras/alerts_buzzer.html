@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+{% block page_label %}EMERGENCY BUZZER & ALERTS HUB{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-2 min-h-0 bg-[#070b12] text-slate-200 p-3">
+    
+    <!-- Top Panic Trigger Bar -->
+    <div class="px-4 py-3 bg-red-950/30 border border-red-500/30 rounded flex justify-between items-center shrink-0 shadow-lg">
+        <div>
+            <div class="text-[10px] font-bold text-red-400 tracking-widest uppercase animate-pulse">⚠️ Master Emergency Panic Control</div>
+            <div class="text-[7px] text-slate-400 font-mono">Trigger instantaneous high-decibel alarm sirens across selected security gateways.</div>
+        </div>
+        
+        <form method="POST" class="flex items-center gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="trigger_panic">
+            <select name="camera_id" class="bg-black border border-red-500/40 text-white text-[8px] px-2 py-1.5 rounded focus:outline-none">
+                <option value="">ALL CAMERAS (GLOBAL SIREN)</option>
+                {% for c in cameras %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white text-[8px] font-bold tracking-widest rounded shadow transition uppercase animate-bounce">
+                🚨 TRIGGER EMERGENCY SIREN
+            </button>
+        </form>
+    </div>
+
+    <!-- Alert History Table with Clear All Button -->
+    <div class="flex-1 bg-vms_card border border-vms_border rounded overflow-hidden flex flex-col shadow-xl">
+        <div class="px-3 py-2 bg-[#050a12] border-b border-vms_border flex justify-between items-center">
+            <span class="text-[9px] font-bold text-slate-300 tracking-widest uppercase">Live Emergency Event Stream</span>
+            
+            <!-- Clear All Logs Form -->
+            <form method="POST" onsubmit="return confirm('Kya aap saare logs delete karna chahte hain?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="clear_all_logs">
+                <button type="submit" class="px-2.5 py-1 bg-red-950 hover:bg-red-900 text-red-400 text-[7px] font-bold tracking-wider rounded border border-red-500/30 transition uppercase">
+                    🗑️ Clear All Logs
+                </button>
+            </form>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#050a12]/50 border-b border-vms_border text-[7px] text-slate-400 tracking-widest uppercase font-mono">
+                        <th class="p-2.5">Timestamp</th>
+                        <th class="p-2.5">Source Node</th>
+                        <th class="p-2.5">Emergency Event Details</th>
+                        <th class="p-2.5">Severity</th>
+                        <th class="p-2.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-vms_border text-[8px]">
+                    {% for alert in alerts %}
+                    <tr class="hover:bg-red-500/5 transition">
+                        <td class="p-2.5 text-slate-400 font-mono">{{ alert.timestamp|date:"d M Y, H:i:s" }}</td>
+                        <td class="p-2.5 text-cyan-300 font-bold">{{ alert.camera.name|upper|default:"SYSTEM MASTER" }}</td>
+                        <td class="p-2.5 text-red-300 font-mono tracking-wider font-bold">{{ alert.message }}</td>
+                        <td class="p-2.5">
+                            <span class="bg-red-500/20 text-red-400 border border-red-500/40 px-2 py-0.5 rounded text-[6px] font-bold tracking-widest">CRITICAL</span>
+                        </td>
+                        <td class="p-2.5 text-right">
+                            <!-- Delete Single Log Form -->
+                            <form method="POST" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_log">
+                                <input type="hidden" name="log_id" value="{{ alert.id }}">
+                                <button type="submit" class="text-slate-500 hover:text-red-400 bg-black/40 hover:bg-red-950/40 border border-vms_border hover:border-red-500/30 px-2 py-0.5 rounded transition font-mono text-[7px]">
+                                    DELETE
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-10 text-slate-600 font-mono text-[8px]">NO EMERGENCY ALERTS LOGGED</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

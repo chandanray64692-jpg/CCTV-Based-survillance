@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+{% block page_label %}NETWORK CAMERA AUTO-DISCOVERY{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-3 p-3 bg-[#070b12] text-slate-200">
+    
+    <!-- Top Action Bar -->
+    <div class="px-4 py-3 bg-[#0b111a] border border-vms_border rounded flex justify-between items-center shrink-0">
+        <div>
+            <div class="text-[10px] font-bold text-cyan-400 tracking-widest uppercase">LAN IP Camera Scanner</div>
+            <div class="text-[7px] text-slate-400 font-mono">Automatically detect CP Plus and ONVIF cameras connected via LAN cable.</div>
+        </div>
+        <button onclick="startScan()" id="scan-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-[8px] font-bold tracking-widest rounded shadow transition uppercase flex items-center gap-2">
+            <span>🔍 START NETWORK SCAN</span>
+        </button>
+    </div>
+
+    <!-- Results Table Container -->
+    <div class="flex-1 bg-vms_card border border-vms_border rounded p-3 flex flex-col overflow-hidden shadow-xl">
+        <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2 border-b border-vms_border pb-1">
+            Discovered Devices on Local Subnet (192.168.1.x)
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#050a12] border-b border-vms_border text-[7px] text-slate-400 tracking-widest uppercase font-mono">
+                        <th class="p-2.5">Device Name</th>
+                        <th class="p-2.5">IP Address</th>
+                        <th class="p-2.5">Port</th>
+                        <th class="p-2.5">Status</th>
+                        <th class="p-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="scan-results" class="divide-y divide-vms_border text-[8px]">
+                    <tr>
+                        <td colspan="5" class="text-center py-12 text-slate-600 font-mono text-[8px]">
+                            CLICK 'START NETWORK SCAN' TO DETECT CONNECTED CAMERAS
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function startScan() {
+        const btn = document.getElementById('scan-btn');
+        const tbody = document.getElementById('scan-results');
+        
+        btn.disabled = true;
+        btn.innerText = "SCANNING NETWORK...";
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-cyan-400 font-mono animate-pulse text-[8px]">SCANNING SUBNET FOR RTSP/ONVIF STREAMS... PLEASE WAIT.</td></tr>`;
+
+        fetch("{% url 'api_scan_network' %}")
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = "🔍 START NETWORK SCAN";
+            
+            if (data.status === 'success' && data.cameras.length > 0) {
+                let html = '';
+                data.cameras.forEach(cam => {
+                    html += `
+                    <tr class="hover:bg-blue-500/5 transition">
+                        <td class="p-2.5 font-bold text-cyan-300">${cam.name}</td>
+                        <td class="p-2.5 font-mono text-slate-300">${cam.ip}</td>
+                        <td class="p-2.5 font-mono text-slate-400">${cam.port}</td>
+                        <td class="p-2.5"><span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded text-[6px] font-bold">ONLINE</span></td>
+                        <td class="p-2.5 text-right">
+                            <a href="{% url 'camera_management' %}?ip=${cam.ip}" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[7px] font-bold uppercase transition">
+                                QUICK ADD
+                            </a>
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-slate-500 font-mono text-[8px]">NO CAMERAS FOUND ON PORT 554. CHECK LAN CABLE CONNECTION.</td></tr>`;
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerText = "🔍 START NETWORK SCAN";
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-red-400 font-mono text-[8px]">ERROR SCANNING NETWORK.</td></tr>`;
+        });
+    }
+</script>
+{% endblock %}

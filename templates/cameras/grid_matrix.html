@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+{% block page_label %}LIVE GRID MATRIX{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-2 min-h-0">
+    <!-- Top Control Bar -->
+    <div class="bg-vms_card border border-vms_border rounded flex justify-between items-center p-1.5 shrink-0">
+        <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Surveillance Array & AI Task Controls</span>
+        </div>
+        <div class="text-[8px] text-slate-500 font-mono tracking-wider">
+            TOTAL NODES: {{ cameras.count|default:0 }}
+        </div>
+    </div>
+
+    <!-- Camera Matrix Grid -->
+    <div class="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+        {% for camera in cameras %}
+        <div class="relative bg-black border border-vms_border rounded overflow-hidden group flex flex-col justify-between">
+            <div class="flex-1 relative min-h-[180px]">
+                <img src="{% url 'live_feed' camera.id %}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition" alt="Feed">
+                
+                <!-- Scanline Effect -->
+                <div class="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(59,130,246,0.05)_1px,transparent_1px)] bg-[size:100%_4px]"></div>
+                
+                <!-- Top Labels & REC Badge -->
+                <div class="absolute top-1 left-1 flex gap-1 pointer-events-none z-10">
+                    <span class="text-[7px] font-bold text-white bg-black/70 backdrop-blur border border-slate-700/50 px-1.5 py-0.5 rounded">CAM {{ forloop.counter }} : {{ camera.name|upper }}</span>
+                </div>
+                <div class="absolute top-1 right-1 pointer-events-none z-10">
+                    <span class="text-[6px] text-red-400 bg-red-950/80 border border-red-500/30 px-1.5 py-0.5 rounded animate-pulse font-bold tracking-widest">REC</span>
+                </div>
+
+                <!-- Active Task Badges Overlay -->
+                <div class="absolute top-7 left-1 right-1 flex flex-wrap gap-1 z-10 pointer-events-none">
+                    {% if camera.enable_anpr %}
+                        <span class="text-[6px] font-bold bg-blue-900/80 text-blue-300 border border-blue-500/40 px-1 py-0.5 rounded">ANPR</span>
+                    {% endif %}
+                    {% if camera.enable_intrusion or camera.enable_fence %}
+                        <span class="text-[6px] font-bold bg-red-900/80 text-red-300 border border-red-500/40 px-1 py-0.5 rounded">INTRUSION</span>
+                    {% endif %}
+                    {% if camera.enable_mobile_detection %}
+                        <span class="text-[6px] font-bold bg-purple-900/80 text-purple-300 border border-purple-500/40 px-1 py-0.5 rounded">MOBILE</span>
+                    {% endif %}
+                    {% if camera.enable_clahe %}
+                        <span class="text-[6px] font-bold bg-amber-900/80 text-amber-300 border border-amber-500/40 px-1 py-0.5 rounded">CLAHE</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Direct Grid AI Control Checkboxes -->
+            <div class="flex gap-1 bg-[#050b14] px-2 py-1.5 text-[7px] text-slate-300 items-center justify-between border-t border-vms_border shrink-0">
+                <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                    <input type="checkbox" {% if camera.enable_anpr %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_anpr', this)" class="accent-blue-500 w-2.5 h-2.5"> ANPR
+                </label>
+                <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                    <input type="checkbox" {% if camera.enable_intrusion %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_intrusion', this)" class="accent-red-500 w-2.5 h-2.5"> Intrusion
+                </label>
+                <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                    <input type="checkbox" {% if camera.enable_mobile_detection %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_mobile_detection', this)" class="accent-purple-500 w-2.5 h-2.5"> Mobile
+                </label>
+                <label class="cursor-pointer flex items-center gap-0.5 hover:text-cyan-400">
+                    <input type="checkbox" {% if camera.enable_clahe %}checked{% endif %} onchange="updateCameraAI('{{ camera.id }}', 'enable_clahe', this)" class="accent-amber-500 w-2.5 h-2.5"> CLAHE
+                </label>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full flex items-center justify-center text-[9px] text-slate-600 font-mono border border-dashed border-vms_border rounded h-full py-10">
+            [ NO CAMERAS CONFIGURED ]
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// 🟢 Non-blocking AJAX function for instant UI responsiveness
+function updateCameraAI(cameraId, featureName, checkboxElem) {
+    const isChecked = checkboxElem.checked;
+    
+    fetch(`/cameras/api/toggle-ai/${cameraId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            feature: featureName,
+            state: isChecked
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            console.log(`AI Feature '${featureName}' for Camera ID ${cameraId} updated to: ${isChecked}`);
+        } else {
+            alert('Failed to update camera AI rule!');
+            checkboxElem.checked = !isChecked;
+        }
+    })
+    .catch(err => {
+        console.error('Error updating AI task:', err);
+        checkboxElem.checked = !isChecked;
+    });
+}
+</script>
+{% endblock %}

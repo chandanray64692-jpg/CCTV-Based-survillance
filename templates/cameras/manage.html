@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Vision | Camera Management</title>
+    <style>
+        :root{
+            --bg:#07101d; --panel:#0d1928; --panel2:#101f31; --line:#203149;
+            --text:#e8eef7; --muted:#8ea0b8; --primary:#4f7cff; --primary2:#315ee8;
+            --success:#20c77a; --warning:#f5b942; --danger:#ff5c6c;
+            --shadow:0 18px 50px rgba(0,0,0,.28);
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:radial-gradient(circle at 75% 0%,#142746 0,#07101d 38%,#050b14 100%);
+             color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
+        button,input,select{font:inherit}
+        .app{display:flex;min-height:100vh}
+        .sidebar{width:260px;flex:0 0 260px;background:rgba(8,17,30,.92);border-right:1px solid var(--line);
+                 padding:24px 16px;display:flex;flex-direction:column;justify-content:space-between;position:sticky;top:0;height:100vh}
+        .brand{display:flex;gap:12px;align-items:center;padding:8px 10px 26px}
+        .brand-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+                    background:linear-gradient(135deg,#ff4e64,#8f1e35);box-shadow:0 8px 25px rgba(255,78,100,.25)}
+        .brand strong{display:block;font-size:17px}.brand span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+        .nav-title{font-size:10px;color:#5f738e;letter-spacing:1.4px;font-weight:800;padding:8px 12px}
+        .nav{display:flex;flex-direction:column;gap:5px}
+        .nav a{color:#9badc4;text-decoration:none;padding:12px 13px;border-radius:10px;display:flex;gap:11px;align-items:center;font-size:13px;font-weight:600}
+        .nav a:hover,.nav a.active{background:linear-gradient(90deg,rgba(79,124,255,.22),rgba(79,124,255,.06));color:#fff}
+        .nav a.active{border:1px solid rgba(79,124,255,.25)}
+        .side-foot{border-top:1px solid var(--line);padding:16px 10px;color:#61738b;font-size:11px}
+        .status{display:flex;align-items:center;gap:7px;margin-bottom:7px;color:#8fa3bc}
+        .dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 12px rgba(32,199,122,.7)}
+        .main{flex:1;min-width:0;padding:28px 34px 40px}
+        .topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:24px}
+        .eyebrow{font-size:11px;color:#6f83a0;letter-spacing:1.5px;text-transform:uppercase;font-weight:800}
+        h1{font-size:27px;margin:6px 0 5px;letter-spacing:-.5px}
+        .subtitle{margin:0;color:var(--muted);font-size:13px}
+        .actions{display:flex;gap:10px;align-items:center}
+        .btn{border:1px solid var(--line);background:#122238;color:#dbe6f4;border-radius:10px;padding:11px 15px;
+             cursor:pointer;font-weight:700;font-size:12px;transition:.2s}
+        .btn:hover{transform:translateY(-1px);border-color:#3c5680}
+        .btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2));border-color:transparent;color:#fff}
+        .btn.success{background:linear-gradient(135deg,#19bd73,#15965e);border-color:transparent;color:#fff}
+        .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+        .grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px}
+        .card{background:linear-gradient(180deg,rgba(16,31,49,.96),rgba(10,22,36,.96));border:1px solid var(--line);
+              border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+        .card-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+        .card-title{font-size:14px;font-weight:800}.card-sub{font-size:11px;color:var(--muted);margin-top:3px}
+        .card-body{padding:20px}
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .field.full{grid-column:1/-1}
+        label{display:block;color:#91a3ba;font-size:11px;font-weight:700;margin-bottom:7px}
+        input,select{width:100%;background:#081522;border:1px solid #263b55;color:#e8eef7;border-radius:9px;
+                     padding:11px 12px;outline:none;font-size:12px}
+        input:focus,select:focus{border-color:#4f7cff;box-shadow:0 0 0 3px rgba(79,124,255,.11)}
+        .hint{font-size:10px;color:#60738d;margin-top:6px}
+        .section{margin-top:18px;padding-top:17px;border-top:1px solid var(--line)}
+        .section-label{font-size:11px;color:#9eafd0;font-weight:800;margin-bottom:11px;text-transform:uppercase;letter-spacing:.8px}
+        .toggles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .toggle{background:#0a1726;border:1px solid #1f334b;border-radius:9px;padding:10px;display:flex;gap:9px;align-items:center;
+                color:#aab8cb;font-size:11px;cursor:pointer}
+        .toggle:hover{border-color:#38547a}.toggle input{width:auto;accent-color:var(--primary)}
+        .submit{margin-top:18px;width:100%;padding:13px}
+        .tips{display:flex;flex-direction:column;gap:12px}
+        .tip{padding:13px;background:#091726;border:1px solid #1d3048;border-radius:10px;color:#91a4bb;font-size:11px;line-height:1.55}
+        .tip strong{color:#e5edf8}
+        .engine{margin-top:auto;padding:14px;border-radius:11px;background:rgba(32,199,122,.07);border:1px solid rgba(32,199,122,.2);
+                display:flex;align-items:center;justify-content:space-between;font-size:11px}
+        .scan{margin-top:20px}
+        .scan-list{padding:14px;min-height:120px}
+        .scan-empty{color:#647892;font-size:12px;text-align:center;padding:25px}
+        .camera-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;
+                     background:#091726;border:1px solid #1c3048;border-radius:10px;margin-bottom:8px}
+        .camera-item:last-child{margin-bottom:0}
+        .cam-name{font-weight:800;font-size:12px}.cam-meta{color:#6f839d;font-size:10px;margin-top:4px}
+        .select-btn{padding:7px 10px;font-size:10px}
+        .saved{margin-top:22px}
+        .saved-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:12px}
+        .saved-card{padding:16px;background:linear-gradient(180deg,#101f31,#0b1827);border:1px solid var(--line);border-radius:13px}
+        .saved-top{display:flex;justify-content:space-between;gap:10px}.saved-name{font-weight:800;font-size:13px}
+        .badge{font-size:9px;padding:4px 7px;border-radius:20px;background:rgba(32,199,122,.12);color:#52db9b;border:1px solid rgba(32,199,122,.2);white-space:nowrap}
+        .saved-location{font-size:10px;color:#8296af;margin-top:8px}.rtsp{font-size:10px;color:#536981;margin-top:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .loading{display:none;padding:10px 14px;color:#f3c35d;font-size:11px;border-bottom:1px solid var(--line)}
+        @media(max-width:1050px){.sidebar{width:220px;flex-basis:220px}.main{padding:24px}.grid{grid-template-columns:1fr}.saved-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:720px){.app{display:block}.sidebar{position:relative;width:100%;height:auto}.side-foot{display:none}.main{padding:18px}.topbar{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn{flex:1}.form-grid,.toggles{grid-template-columns:1fr}.field.full{grid-column:auto}.saved-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <div class="brand-icon">🛡️</div>
+                <div><strong>Secure Vision</strong><span>AI SECURITY PLATFORM</span></div>
+            </div>
+            <div class="nav-title">CONTROL CENTER</div>
+            <nav class="nav">
+                <a href="/">◉ <span>Live Dashboard</span></a>
+                <a href="/cameras/manage/" class="active">▣ <span>Camera Management</span></a>
+                <a href="/footprint-map/">⌖ <span>Geo-Map Tracking</span></a>
+                <a href="/analytics/">◈ <span>AI Analytics</span></a>
+                <a href="/api/v1/">⌁ <span>API Endpoints</span></a>
+            </nav>
+        </div>
+        <div class="side-foot">
+            <div class="status"><i class="dot"></i> NVR Engine Online</div>
+            Secure Vision v3.0 · Camera AI
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <div class="eyebrow">Infrastructure / Cameras</div>
+                <h1>Camera Management</h1>
+                <p class="subtitle">Register, configure and monitor network cameras from one control panel.</p>
+            </div>
+            <div class="actions">
+                <button class="btn" id="scanBtn" onclick="startScan()">📡 Auto-Scan Network</button>
+                <button class="btn primary" onclick="document.getElementById('cameraForm').scrollIntoView({behavior:'smooth'})">＋ Add Camera</button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <section class="card" id="cameraForm">
+                <div class="card-head">
+                    <div><div class="card-title">Configure & Register Camera</div><div class="card-sub">Add an RTSP stream, webcam or compatible device.</div></div>
+                    <span class="badge">READY</span>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/cameras/manage/">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="field">
+                                <label>CAMERA NAME</label>
+                                <input type="text" name="name" id="form-name" required placeholder="e.g. Main Gate Camera">
+                            </div>
+                            <div class="field">
+                                <label>LOCATION / ZONE</label>
+                                <input type="text" name="location" id="form-location" required placeholder="e.g. Sector A Gate">
+                            </div>
+                            <div class="field full">
+                                <label>RTSP STREAM URL / DEVICE ID</label>
+                                <input type="text" name="rtsp_url" id="form-rtsp" required placeholder="rtsp://admin:password@192.168.1.20:554/stream or 0">
+                                <div class="hint">For a local webcam, use <strong>0</strong> where supported by your backend.</div>
+                            </div>
+                            <div class="field">
+                                <label>ZONE CATEGORY</label>
+                                <select name="zone_category">
+                                    <option value="Gate">Main / Secondary Gate</option>
+                                    <option value="Perimeter">Perimeter / Boundary</option>
+                                    <option value="Indoor">Indoor / Corridor</option>
+                                    <option value="Mess">Dining / Mess Area</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>STREAM QUALITY</label>
+                                <select name="stream_quality">
+                                    <option value="Sub-Stream">Sub-Stream · 720p Optimized</option>
+                                    <option value="Main-Stream">Main-Stream · 1080p HD</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>USERNAME <span style="font-weight:400;color:#586c85">(OPTIONAL)</span></label>
+                                <input type="text" name="username" placeholder="admin">
+                            </div>
+                            <div class="field">
+                                <label>PASSWORD <span style="font-weight:400;color:#586c85">(OPTIONAL)</span></label>
+                                <input type="password" name="password" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-label">Per-Camera AI Models</div>
+                            <div class="toggles">
+                                <label class="toggle"><input type="checkbox" name="enable_face_recognition" checked> Face Recognition</label>
+                                <label class="toggle"><input type="checkbox" name="enable_anpr"> ANPR · Vehicles</label>
+                                <label class="toggle"><input type="checkbox" name="enable_threat_detection" checked> Fire & Threat AI</label>
+                                <label class="toggle"><input type="checkbox" name="enable_liveness" checked> Anti-Spoofing / Liveness</label>
+                                <label class="toggle"><input type="checkbox" name="enable_mobile_detection" checked> Mobile / Spying Alarm</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn primary submit">💾 Save & Activate Camera</button>
+                    </form>
+                </div>
+            </section>
+
+            <aside class="card">
+                <div class="card-head"><div><div class="card-title">Configuration Guide</div><div class="card-sub">Quick setup reference</div></div>💡</div>
+                <div class="card-body tips">
+                    <div class="tip"><strong>Webcam testing</strong><br>Use device ID <strong>0</strong> when your camera backend supports local OpenCV capture.</div>
+                    <div class="tip"><strong>Performance</strong><br>Use Sub-Stream for AI inference to reduce CPU/GPU load and network traffic.</div>
+                    <div class="tip"><strong>Threat detection</strong><br>Enable Fire & Threat AI only on cameras where the required model is configured.</div>
+                    <div class="tip"><strong>Credentials</strong><br>Keep camera credentials private and avoid exposing RTSP URLs in screenshots or logs.</div>
+                    <div class="engine"><span>● AI / NVR ENGINE</span><strong style="color:#52db9b">ONLINE</strong></div>
+                </div>
+            </aside>
+        </div>
+
+        <section class="card scan">
+            <div class="card-head">
+                <div><div class="card-title">Network Discovery</div><div class="card-sub">Detected cameras available for quick registration.</div></div>
+                <span id="scanStatus" class="badge">IDLE</span>
+            </div>
+            <div id="loading" class="loading">Scanning local network… Please wait.</div>
+            <div id="discovered-list" class="scan-list">
+                <div class="scan-empty">Click <strong>Auto-Scan Network</strong> to discover IP cameras.</div>
+            </div>
+        </section>
+
+        <section class="saved">
+            <div class="eyebrow">REGISTERED DEVICES</div>
+            <h2 style="font-size:19px;margin:5px 0 0">Saved & Active Cameras</h2>
+            <div class="saved-grid">
+                {% for cam in saved_cameras %}
+                <div class="saved-card">
+                    <div class="saved-top"><div class="saved-name">{{ cam.name }}</div><span class="badge">● ACTIVE</span></div>
+                    <div class="saved-location">📍 {{ cam.location }}</div>
+                    <div class="rtsp" title="{{ cam.rtsp_url }}">{{ cam.rtsp_url }}</div>
+                </div>
+                {% empty %}
+                <div class="saved-card" style="grid-column:1/-1;color:#667b94;font-size:12px;text-align:center;padding:28px">No cameras registered yet.</div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+function esc(v){
+    return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function startScan(){
+    const btn=document.getElementById('scanBtn'), loading=document.getElementById('loading');
+    const list=document.getElementById('discovered-list'), status=document.getElementById('scanStatus');
+    btn.disabled=true; btn.textContent='⏳ Scanning…'; loading.style.display='block'; status.textContent='SCANNING';
+    fetch('/cameras/scan/', {headers:{'X-Requested-With':'XMLHttpRequest'}})
+      .then(r=>{if(!r.ok) throw new Error('Scan request failed'); return r.json();})
+      .then(data=>{
+        const cams=Array.isArray(data.cameras)?data.cameras:[];
+        list.innerHTML='';
+        if(!cams.length){
+          list.innerHTML='<div class="scan-empty" style="color:#ff7a87">No cameras found on the network.</div>';
+          status.textContent='NO DEVICES';
+          return;
+        }
+        status.textContent=cams.length+' FOUND';
+        cams.forEach(cam=>{
+          const row=document.createElement('div'); row.className='camera-item';
+          row.innerHTML='<div><div class="cam-name">'+esc(cam.name || 'Network Camera')+'</div><div class="cam-meta">'+esc(cam.ip || '')+' · '+esc(cam.location || 'Unknown location')+'</div></div>';
+          const b=document.createElement('button'); b.className='btn select-btn'; b.textContent='Select';
+          b.onclick=()=>fillForm(cam.name,cam.location,cam.rtsp_url);
+          row.appendChild(b); list.appendChild(row);
+        });
+      })
+      .catch(err=>{
+        list.innerHTML='<div class="scan-empty" style="color:#ff7a87">Unable to scan network. Check the Django endpoint and network permissions.</div>';
+        status.textContent='ERROR';
+        console.error(err);
+      })
+      .finally(()=>{
+        loading.style.display='none'; btn.disabled=false; btn.textContent='📡 Auto-Scan Network';
+      });
+}
+function fillForm(name,location,rtsp){
+    document.getElementById('form-name').value=name || '';
+    document.getElementById('form-location').value=location || '';
+    document.getElementById('form-rtsp').value=rtsp || '';
+    document.getElementById('cameraForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>

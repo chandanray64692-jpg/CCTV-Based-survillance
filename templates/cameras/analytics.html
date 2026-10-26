@@ -1,0 +1,106 @@
+{% extends 'core/base.html' %}
+{% block title %}Bison Prahari • AI Analytics & Evidence{% endblock %}
+{% block page_label %}AI ANALYTICS & EVIDENCE GALLERY{% endblock %}
+
+{% block content %}
+<div class="h-full flex flex-col gap-3 min-h-0 bg-[#070b12] p-1">
+    
+    <!-- 1. FILTERS & METRICS HEADER BAR -->
+    <div class="bg-vms_card border border-vms_border rounded p-2.5 shrink-0 flex flex-wrap justify-between items-center gap-3 shadow-md">
+        <form method="GET" class="flex items-center gap-2.5">
+            <div class="relative">
+                <span class="absolute left-2 top-2 text-[10px] text-slate-500">🔍</span>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search threat logs..." class="bg-[#050a12] border border-vms_border text-slate-300 text-[10px] pl-6 pr-2 py-1.5 rounded w-56 focus:border-blue-500 focus:outline-none transition font-mono">
+            </div>
+            
+            <select name="status" class="bg-[#050a12] border border-vms_border text-slate-300 text-[10px] px-2 py-1.5 rounded focus:outline-none focus:border-blue-500 transition">
+                <option value="All" {% if status_filter == 'All' %}selected{% endif %}>All Status</option>
+                <option value="Critical" {% if status_filter == 'Critical' %}selected{% endif %}>Critical</option>
+                <option value="High" {% if status_filter == 'High' %}selected{% endif %}>High</option>
+            </select>
+            
+            <button type="submit" class="bg-blue-600/20 text-blue-400 border border-blue-600/40 hover:bg-blue-600/60 text-[9px] px-4 py-1.5 rounded transition font-bold tracking-widest shadow-sm uppercase cursor-pointer">
+                Filter
+            </button>
+        </form>
+        
+        <div class="flex items-center gap-2">
+            <a href="?export=csv" class="bg-emerald-600/10 text-emerald-400 border border-emerald-600/40 hover:bg-emerald-600/30 text-[9px] px-3 py-1.5 rounded transition font-bold tracking-widest flex items-center gap-1.5 shadow-sm uppercase">
+                <span>📥</span> Export CSV
+            </a>
+            <a href="{% url 'analytics_report' %}" target="_blank" class="bg-purple-600/20 text-purple-400 border border-purple-600/40 hover:bg-purple-600/40 text-[9px] px-3 py-1.5 rounded transition font-bold tracking-widest flex items-center gap-1.5 shadow-sm uppercase">
+                <span>📄</span> PDF Report ⇩
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. QUICK METRICS OVERVIEW ROW -->
+    <div class="grid grid-cols-3 gap-2 shrink-0">
+        <div class="bg-vms_card border border-vms_border p-2.5 rounded flex flex-col justify-center items-center shadow">
+            <span class="text-[7px] text-slate-400 uppercase tracking-widest font-bold">Processed Events</span>
+            <span class="text-lg font-black text-cyan-300 mt-0.5">{{ total_events|default:"1,248" }}</span>
+        </div>
+        <div class="bg-vms_card border border-vms_border p-2.5 rounded flex flex-col justify-center items-center shadow">
+            <span class="text-[7px] text-slate-400 uppercase tracking-widest font-bold">Flagged Threats</span>
+            <span class="text-lg font-black text-red-400 mt-0.5">{{ critical_count|default:"15" }}</span>
+        </div>
+        <div class="bg-vms_card border border-vms_border p-2.5 rounded flex flex-col justify-center items-center shadow">
+            <span class="text-[7px] text-slate-400 uppercase tracking-widest font-bold">System Uptime</span>
+            <span class="text-lg font-black text-emerald-400 mt-0.5">99.9%</span>
+        </div>
+    </div>
+
+    <!-- 3. EVIDENCE GALLERY GRID -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar pr-1 min-h-0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 pb-3">
+            
+            {% for log in logs %}
+            <div class="bg-vms_card border border-vms_border rounded-lg overflow-hidden flex flex-col hover:border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] transition duration-300 group">
+                
+                <!-- Image Area (16:9 Aspect Ratio) -->
+                <div class="relative aspect-video bg-black shrink-0">
+                    {% if log.image_path %}
+                    <img src="/media/{{ log.image_path }}" class="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition duration-300" alt="Evidence">
+                    {% else %}
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 border-b border-vms_border bg-[#050a12]">
+                        <span class="text-base mb-1">📷</span>
+                        <span class="text-[6px] font-mono tracking-widest">NO IMAGE DATA</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Status Badge -->
+                    <span class="absolute top-1.5 right-1.5 text-[6px] font-bold px-1.5 py-0.5 rounded tracking-widest uppercase border {% if log.status == 'Critical' %}bg-red-500/20 text-red-400 border-red-500/30{% else %}bg-orange-500/20 text-orange-400 border-orange-500/30{% endif %} shadow-sm">
+                        {{ log.status|default:"CRITICAL" }}
+                    </span>
+                    
+                    <!-- Camera Tag Overlay -->
+                    <div class="absolute bottom-1.5 left-1.5 flex items-center gap-1 pointer-events-none">
+                        <span class="bg-black/80 backdrop-blur text-white text-[6px] px-1.5 py-0.5 rounded font-mono border border-slate-700/50 tracking-wider">
+                            CAM: {{ log.camera.name|default:"SYSTEM"|upper }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Details Footer Area -->
+                <div class="p-2 flex flex-col gap-1 bg-[#050a12] border-t border-vms_border shrink-0">
+                    <div class="text-[9px] font-bold text-red-300 leading-tight truncate" title="{{ log.message }}">
+                        {{ log.message|upper }}
+                    </div>
+                    <div class="flex justify-between items-center text-[6px] text-slate-500 font-mono tracking-wider">
+                        <span class="truncate pr-1 border-r border-slate-800">{{ log.camera.zone_category|default:"GENERAL"|upper }}</span>
+                        <span class="pl-1">{{ log.timestamp|date:"M d, Y H:i:s" }}</span>
+                    </div>
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
+                <span class="text-3xl mb-2 opacity-50">📂</span>
+                <span class="text-[9px] font-mono tracking-widest">NO EVIDENCE LOGS FOUND MATCHING CRITERIA</span>
+            </div>
+            {% endfor %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

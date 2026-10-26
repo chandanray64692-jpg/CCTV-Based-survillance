@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Vision - Live Geo-Footprint Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    <div class="flex h-screen overflow-hidden">
+        
+        <div class="w-64 bg-gray-800 border-r border-gray-700 p-5 flex flex-col justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-red-500 mb-6">🛡️ Secure Vision</h1>
+                <nav class="space-y-3">
+                    <a href="/" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300">Live Dashboard</a>
+                    <a href="/cameras/manage/" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300">Camera Setup</a>
+                    <a href="/footprint-map/" class="block py-2.5 px-4 rounded bg-indigo-600 text-white font-semibold">🗺️ Geo-Map Tracking</a>
+                    <a href="/analytics/" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300">AI Analytics</a>
+                </nav>
+            </div>
+            <div class="text-xs text-gray-500">AI Security Guard v3.0</div>
+        </div>
+
+        <div class="flex-1 flex flex-col overflow-y-auto p-6">
+            <header class="mb-4">
+                <h2 class="text-2xl font-bold">Real-Time Person Re-ID & Geo-Footprint Trail</h2>
+                <p class="text-gray-400 text-sm">Tracking movement paths across Main Gate, Ground, Mess, and Secondary Gates.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[78vh]">
+                <div class="lg:col-span-2 bg-gray-800 rounded-lg border border-gray-700 p-2 shadow-xl relative">
+                    <div id="map" class="w-full h-full rounded-lg z-10"></div>
+                </div>
+
+                <div class="bg-gray-800 rounded-lg border border-gray-700 p-4 flex flex-col">
+                    <h3 class="text-md font-medium text-gray-300 mb-3">Target Trajectory Timeline</h3>
+                    <div class="overflow-y-auto flex-1 space-y-3 pr-1" id="timeline-container">
+                        {% for track in recent_tracks %}
+                        <div class="bg-gray-700 p-3 rounded text-sm border-l-4 border-indigo-500">
+                            <div class="font-bold">👤 {{ track.visitor.name }}</div>
+                            <div class="text-xs text-indigo-300 mt-1">Route: {{ track.action_sequence }}</div>
+                            <div class="text-[10px] text-gray-400 mt-1">📍 Location: {{ track.camera.name }}</div>
+                            <div class="text-[9px] text-gray-500 mt-0.5">{{ track.timestamp }}</div>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-sm">Waiting for multi-camera movement data...</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Map centered around facility coordinates
+        const map = L.map('map').setView([28.6139, 77.2090], 17);
+
+        // Add OpenStreetMap Tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© Secure Vision AI'
+        }).addTo(map);
+
+        // Camera Markers
+        const cameras = [
+            { name: "Main Gate", lat: 28.6140, lng: 77.2085, status: "Active" },
+            { name: "Ground", lat: 28.6138, lng: 77.2092, status: "Active" },
+            { name: "Mess", lat: 28.6135, lng: 77.2088, status: "Active" },
+            { name: "Second Gate", lat: 28.6142, lng: 77.2095, status: "Active" }
+        ];
+
+        cameras.forEach(cam => {
+            L.marker([cam.lat, cam.lng]).addTo(map)
+                .bindPopup(`<b>${cam.name}</b><br>Status: ${cam.status}`);
+        });
+    </script>
+</body>
+</html>

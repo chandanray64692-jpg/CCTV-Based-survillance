@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+{% block title %}Bison Prahari • Zones & Fences{% endblock %}
+{% block page_label %}TACTICAL ZONES & PERIMETER DEFENSE{% endblock %}
+
+{% block content %}
+<div class="h-full w-full flex flex-col gap-2 p-2 min-h-0 bg-[#070b12]">
+    <div class="dashboard-card p-3 bg-[#0b111a] border border-slate-800 rounded flex justify-between items-center shrink-0">
+        <div>
+            <h2 class="text-xs font-bold text-amber-400 tracking-wider uppercase">Perimeter Zone Matrix</h2>
+            <p class="text-[8px] text-slate-400 mt-0.5">Configure AI polygon intrusion detection boundaries for camera feeds.</p>
+        </div>
+        <span class="px-2 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[8px] font-bold">SECURE ZONE ACTIVE</span>
+    </div>
+
+    <div class="flex-1 grid grid-cols-2 gap-2 min-h-0">
+        <div class="dashboard-card p-3 bg-[#0b111a] border border-slate-800 rounded flex flex-col">
+            <h3 class="text-[9px] font-bold text-cyan-400 uppercase mb-2">Zone Rules & Categorization</h3>
+            <ul class="text-[9px] space-y-2 text-slate-300">
+                <li class="bg-[#070b12] p-2 rounded border border-slate-800 flex justify-between items-center">
+                    <span>🔴 <strong>Main Gate Restricted Zone</strong> (ANPR Trigger)</span>
+                    <span class="text-emerald-400 text-[8px]">ENABLED</span>
+                </li>
+                <li class="bg-[#070b12] p-2 rounded border border-slate-800 flex justify-between items-center">
+                    <span>🟡 <strong>Officer Mess Perimeter</strong> (Motion Detection)</span>
+                    <span class="text-emerald-400 text-[8px]">ENABLED</span>
+                </li>
+            </ul>
+        </div>
+        <div class="dashboard-card p-3 bg-[#0b111a] border border-slate-800 rounded flex items-center justify-center text-slate-500 font-mono text-[9px]">
+            [ INTERACTIVE POLYGON CANVAS READY ]
+        </div>
+    </div>
+</div>
+{% endblock %}

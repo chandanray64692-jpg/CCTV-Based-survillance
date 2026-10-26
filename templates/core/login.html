@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarkash VMS - Secure Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0f172a] text-slate-100 h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-md bg-[#1e293b] border border-slate-800 rounded-xl p-8 shadow-2xl">
+        
+        <!-- Logo & Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold tracking-widest text-blue-400">TARKASH VMS</h1>
+            <p class="text-xs text-slate-400 mt-1 uppercase tracking-wider">AI Surveillance Command Center</p>
+        </div>
+
+        <!-- Error Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="POST" class="flex flex-col gap-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1 tracking-wider">Username / Operator ID</label>
+                <input type="text" name="username" required class="w-full bg-[#0f172a] border border-slate-700 rounded p-3 text-sm text-slate-200 focus:border-blue-500 outline-none transition" placeholder="Enter username">
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400 mb-1 tracking-wider">Secure Password</label>
+                <input type="password" name="password" required class="w-full bg-[#0f172a] border border-slate-700 rounded p-3 text-sm text-slate-200 focus:border-blue-500 outline-none transition" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold tracking-widest py-3 rounded transition shadow-[0_0_15px_rgba(37,99,235,0.4)] uppercase">
+                Authenticate & Login
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-[10px] text-slate-500">
+            Protected by Tarkash Defense Level Security Protocol.
+        </div>
+    </div>
+
+</body>
+</html>

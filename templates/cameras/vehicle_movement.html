@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Bison Prahari • Vehicle Movement Monitor{% endblock %}
+{% block page_label %}VEHICLE MOVEMENT{% endblock %}
+
+{% block content %}
+<div class="h-full w-full flex flex-col gap-3 min-h-0 overflow-y-auto pr-2">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-[#111827] border border-slate-800 p-4 rounded-lg shrink-0">
+        <div>
+            <h2 class="text-lg font-black text-cyan-400 tracking-wider">🔄 VEHICLE MOVEMENT & GATE MONITOR</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Automatic directional gate check-in (IN) and check-out (OUT) logs with snapshots.</p>
+        </div>
+        <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 text-xs px-3 py-1 rounded font-bold">ANPR LIVE MONITORING</span>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 shrink-0">
+        <div class="bg-[#111827] border-l-4 border-emerald-500 border border-slate-800 p-4 rounded-lg flex justify-between items-center">
+            <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Check-In (IN)</span>
+                <h3 class="text-3xl font-black text-emerald-400 mt-1">{{ total_in|default:0 }}</h3>
+            </div>
+            <span class="text-2xl">➡</span>
+        </div>
+        <div class="bg-[#111827] border-l-4 border-red-500 border border-slate-800 p-4 rounded-lg flex justify-between items-center">
+            <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Check-Out (OUT)</span>
+                <h3 class="text-3xl font-black text-red-500 mt-1">{{ total_out|default:0 }}</h3>
+            </div>
+            <span class="text-2xl">⬅</span>
+        </div>
+    </div>
+
+    <!-- Dual Feeds -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 min-h-0">
+        <!-- Check In Column -->
+        <div class="bg-[#111827] border border-slate-800 rounded-lg p-4 flex flex-col min-h-0">
+            <h5 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-3">🟢 Gate Entry Logs (IN)</h5>
+            <div class="overflow-y-auto flex-1 space-y-2 pr-1">
+                {% for log in checkin_logs %}
+                <div class="bg-[#050910] p-2.5 rounded border border-slate-800 flex items-center gap-3 text-xs font-mono">
+                    {% if log.snapshot %}
+                    <img src="/media/{{ log.snapshot }}" class="w-16 h-10 object-cover rounded border border-slate-700" alt="Snap">
+                    {% else %}
+                    <div class="w-16 h-10 bg-slate-900 rounded flex items-center justify-center text-[8px] text-slate-500">NO IMG</div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <strong class="text-cyan-300 text-sm">{{ log.plate_number }}</strong> <span class="text-slate-500">({{ log.camera.name }})</span>
+                        <div class="text-[10px] text-slate-400 mt-0.5">{{ log.timestamp|date:"H:i:s d M Y" }}</div>
+                    </div>
+                    <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded text-[10px] font-bold">IN ➡</span>
+                </div>
+                {% empty %}
+                <div class="h-full flex items-center justify-center text-slate-600 text-xs font-mono">No check-in records found.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Check Out Column -->
+        <div class="bg-[#111827] border border-slate-800 rounded-lg p-4 flex flex-col min-h-0">
+            <h5 class="text-xs font-bold text-red-400 uppercase tracking-widest mb-3">🔴 Gate Exit Logs (OUT)</h5>
+            <div class="overflow-y-auto flex-1 space-y-2 pr-1">
+                {% for log in checkout_logs %}
+                <div class="bg-[#050910] p-2.5 rounded border border-slate-800 flex items-center gap-3 text-xs font-mono">
+                    {% if log.snapshot %}
+                    <img src="/media/{{ log.snapshot }}" class="w-16 h-10 object-cover rounded border border-slate-700" alt="Snap">
+                    {% else %}
+                    <div class="w-16 h-10 bg-slate-900 rounded flex items-center justify-center text-[8px] text-slate-500">NO IMG</div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <strong class="text-cyan-300 text-sm">{{ log.plate_number }}</strong> <span class="text-slate-500">({{ log.camera.name }})</span>
+                        <div class="text-[10px] text-slate-400 mt-0.5">{{ log.timestamp|date:"H:i:s d M Y" }}</div>
+                    </div>
+                    <span class="bg-red-950 text-red-400 border border-red-800 px-2 py-1 rounded text-[10px] font-bold">OUT ⬅</span>
+                </div>
+                {% empty %}
+                <div class="h-full flex items-center justify-center text-slate-600 text-xs font-mono">No check-out records found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

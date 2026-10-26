@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Bison Prahari • ANPR Logs{% endblock %}
+{% block page_label %}AUTOMATED NUMBER PLATE RECOGNITION LOGS{% endblock %}
+
+{% block content %}
+<div class="h-full w-full flex flex-col gap-2 p-2 min-h-0 bg-[#070b12]">
+    <div class="dashboard-card p-3 flex justify-between items-center bg-[#0b111a] border border-slate-800 rounded">
+        <h2 class="text-xs font-bold text-amber-400 tracking-wider uppercase">Captured Vehicle Registry</h2>
+        <span class="text-[8px] text-slate-400 font-mono">Real-time DB Synchronized</span>
+    </div>
+
+    <div class="flex-1 overflow-y-auto dashboard-card p-2 bg-[#0b111a] border border-slate-800 rounded">
+        <table class="w-full text-left text-[9px] text-slate-300">
+            <thead class="bg-[#121a26] text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                    <th class="p-2">Snapshot</th>
+                    <th class="p-2">Plate Number</th>
+                    <th class="p-2">Camera / Gate</th>
+                    <th class="p-2">Confidence</th>
+                    <th class="p-2">Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="vehicleLogTable">
+                {% for log in logs %}
+                <tr class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <td class="p-2">
+                        {% if log.image_path %}
+                        <img src="{{ log.image_path.url }}" class="w-10 h-6 object-cover rounded border border-slate-700">
+                        {% else %}
+                        <span class="text-slate-600">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-2 font-mono font-bold text-amber-300 text-[10px]">{{ log.plate_number }}</td>
+                    <td class="p-2 text-cyan-400">{{ log.camera.name|default:"Main Gate" }}</td>
+                    <td class="p-2 font-mono text-emerald-400">{{ log.confidence }}%</td>
+                    <td class="p-2 font-mono text-slate-400">{{ log.timestamp|date:"d M Y, H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="p-6 text-center text-slate-500 font-mono">NO VEHICLE PLATES RECORDED YET</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
