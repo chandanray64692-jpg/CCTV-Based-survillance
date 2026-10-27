@@ -1,4 +1,4 @@
-# Bison Prahari - AI Command Center & VSaaS Platform
+#  Prahari - AI Command Center & VSaaS Platform
 
 Bison Prahari is an advanced, enterprise-grade AI-powered CCTV surveillance and Video Surveillance as a Service (VSaaS) platform built using **Django** and **YOLOv8** for real-time monitoring, intruder alerts, and automated threat detection.
 
